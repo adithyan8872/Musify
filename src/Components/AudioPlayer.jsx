@@ -1,11 +1,11 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Mygarage } from "../Context/AuthContext";
 import {
   FaPlay, FaPause, FaStepBackward, FaStepForward,
   FaRandom, FaRedo, FaVolumeUp, FaVolumeMute, FaList, FaHeart,
   FaChevronUp,
 } from "react-icons/fa";
-import { MdRepeatOne, MdPictureInPicture } from "react-icons/md";
+import { MdRepeatOne } from "react-icons/md";
 import NowPlayingPanel from "./NowPlayingPanel";
 
 const AudioPlayer = () => {
@@ -16,13 +16,14 @@ const AudioPlayer = () => {
     volume, setVolume, audioRef,
     handleNext, handlePrev,
     likedSongs, toggleLike, darkMode,
+    showRightPanel, setShowRightPanel,
   } = useContext(Mygarage);
 
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState("0:00");
   const [duration, setDuration] = useState("0:00");
   const [showQueue, setShowQueue] = useState(false);
-  const [showPanel, setShowPanel] = useState(false);
+  const [showLeftPanel, setShowLeftPanel] = useState(false);
   const [muted, setMuted] = useState(false);
 
   const currentSong = songs[currentSongIndex] || null;
@@ -47,8 +48,8 @@ const AudioPlayer = () => {
     };
   }, [currentSongIndex, songs, handleNext]);
 
-  // Hide panel if nothing playing
-  useEffect(() => { if (!currentSong) setShowPanel(false); }, [currentSong]);
+  // Hide left panel if nothing playing
+  useEffect(() => { if (!currentSong) setShowLeftPanel(false); }, [currentSong]);
 
   function fmt(secs) {
     if (isNaN(secs)) return "0:00";
@@ -87,8 +88,8 @@ const AudioPlayer = () => {
 
   return (
     <>
-      {/* Now Playing Panel */}
-      {showPanel && <NowPlayingPanel onClose={() => setShowPanel(false)} />}
+      {/* Left: Video / Lyrics panel */}
+      {showLeftPanel && <NowPlayingPanel onClose={() => setShowLeftPanel(false)} />}
 
       {/* Queue Panel */}
       {showQueue && (
@@ -154,14 +155,19 @@ const AudioPlayer = () => {
         <div className="flex items-center justify-between px-4 py-2.5">
           {/* Left: Song info */}
           <div className="flex items-center gap-3 w-[240px] shrink-0 min-w-0">
-            <button onClick={() => setShowPanel((p) => !p)} className="relative shrink-0 group/art">
+            {/* Album art — click to open right panel */}
+            <button
+              onClick={() => setShowRightPanel((p) => !p)}
+              className="relative shrink-0 group/art"
+              title="Song details"
+            >
               <img
                 src={thumb}
                 alt={currentSong?.songTitle}
-                className={`w-12 h-12 rounded-xl object-cover shadow-lg transition ${showPanel ? "ring-2 ring-green-500" : "hover:scale-105"}`}
+                className={`w-12 h-12 rounded-xl object-cover shadow-lg transition ${showRightPanel ? "ring-2 ring-green-500" : "hover:scale-105"}`}
               />
               <div className="absolute inset-0 rounded-xl bg-black/50 opacity-0 group-hover/art:opacity-100 flex items-center justify-center transition">
-                <FaChevronUp size={12} className={`text-white transition ${showPanel ? "rotate-180" : ""}`} />
+                <FaChevronUp size={12} className={`text-white transition ${showRightPanel ? "rotate-180" : ""}`} />
               </div>
             </button>
             <div className="overflow-hidden flex-1 min-w-0">
@@ -232,6 +238,14 @@ const AudioPlayer = () => {
               onChange={handleVolume}
               className="w-20 h-1 accent-green-400 cursor-pointer"
             />
+            {/* Lyrics / video panel toggle */}
+            <button
+              onClick={() => setShowLeftPanel((s) => !s)}
+              className={`transition hover:scale-105 text-xs font-bold px-2 py-1 rounded ${showLeftPanel ? "text-green-400 bg-green-400/10" : "text-gray-400 hover:text-white"}`}
+              title="Lyrics / Video"
+            >
+              ♪
+            </button>
             <button
               onClick={() => setShowQueue((s) => !s)}
               className={`transition hover:scale-105 ${showQueue ? "text-green-400" : "text-gray-400 hover:text-white"}`}

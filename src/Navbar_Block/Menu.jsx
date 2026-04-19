@@ -1,24 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Mygarage } from "../Context/AuthContext";
-import { doc, onSnapshot } from "firebase/firestore";
 import { NavLink } from "react-router-dom";
-import { _DB } from "../Backend/Firebase";
 import { MdLogout, MdAdminPanelSettings, MdPerson } from "react-icons/md";
 
 const Menu = () => {
-  const { authuser, logout, darkMode } = useContext(Mygarage);
-  const uid = authuser?.uid;
-  const [profile, setProfile] = useState(null);
+  const { authuser, logout, darkMode, isAdmin } = useContext(Mygarage);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    if (!uid) return;
-    const ref = doc(_DB, "user_Profile", uid);
-    const unsub = onSnapshot(ref, (snap) => {
-      setProfile(snap.exists() ? snap.data() : null);
-    });
-    return () => unsub();
-  }, [uid]);
 
   const linkBase = `px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150`;
   const linkStyle = darkMode
@@ -45,8 +32,8 @@ const Menu = () => {
 
   return (
     <div className="flex items-center gap-3">
-      {/* Admin link */}
-      {profile?.role === "admin" && (
+      {/* Admin link — only shown when role === "admin" */}
+      {isAdmin && (
         <NavLink
           to="/admin"
           className={`flex items-center gap-1.5 ${linkStyle}`}

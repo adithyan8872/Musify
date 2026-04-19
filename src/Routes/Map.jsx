@@ -18,50 +18,62 @@ import Settings from "../UserProfile/Sidebarpages/Settings";
 import Uploadphoto from "../UserProfile/Sidebarpages/Uploadphoto";
 import Admincontainer from "../Admin/Admincontainer";
 import Createalbum from "../Admin/Album/Createalbum";
+import AdminDashboard from "../Admin/Pages/AdminDashboard";
+import ManageAlbums from "../Admin/Pages/ManageAlbums";
+import AdminStats from "../Admin/Pages/AdminStats";
 import AlbumContainer from "../Albumlandingpages/AlbumContainer";
 import Albums from "../Albumlandingpages/Albumpages/Albums";
 import AlbumDetails from "../Albumlandingpages/Albumpages/AlbumDetails";
+import RequireAdmin from "./RequireAdmin";
 
 export const mymap = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
-      { path: "/", element: <Home /> },
-      { path: "/login", element: <Login /> },
-      { path: "/reset", element: <Resetpassword /> },
-      { path: "/register", element: <Register /> },
-      { path: "/search", element: <Search /> },
-      { path: "/liked", element: <LikedSongs /> },
-      { path: "/recent", element: <RecentlyPlayed /> },
-      { path: "/playlist/:id", element: <PlaylistDetail /> },
+      { path: "/",              element: <Home />           },
+      { path: "/login",         element: <Login />          },
+      { path: "/reset",         element: <Resetpassword />  },
+      { path: "/register",      element: <Register />       },
+      { path: "/search",        element: <Search />         },
+      { path: "/liked",         element: <LikedSongs />     },
+      { path: "/recent",        element: <RecentlyPlayed /> },
+      { path: "/playlist/:id",       element: <PlaylistDetail />      },
       { path: "/movie-playlist/:id", element: <MoviePlaylistDetail /> },
-      {
-        path: "/library",
-        element: <Library />,
-      },
+      { path: "/library",       element: <Library />        },
+
+      // ── Profile ──────────────────────────────────────────────────────
       {
         path: "/profile",
         element: <Profilecontainer />,
         children: [
-          { path: "myaccount", element: <Myaccount /> },
+          { path: "myaccount",      element: <Myaccount />      },
           { path: "changepassword", element: <Changepassword /> },
-          { path: "Addprofile", element: <Addprofile /> },
-          { path: "settings", element: <Settings /> },
-          { path: "uploadphoto", element: <Uploadphoto /> },
+          { path: "Addprofile",     element: <Addprofile />     },
+          { path: "settings",       element: <Settings />       },
+          { path: "uploadphoto",    element: <Uploadphoto />    },
         ],
       },
+
+      // ── Admin (role-protected) ────────────────────────────────────────
       {
         path: "/admin",
-        element: <Admincontainer />,
-        children: [{ index: true, element: <Createalbum /> }],
+        element: <RequireAdmin><Admincontainer /></RequireAdmin>,
+        children: [
+          { index: true,          element: <AdminDashboard /> },
+          { path: "upload",       element: <Createalbum />    },
+          { path: "manage",       element: <ManageAlbums />   },
+          { path: "stats",        element: <AdminStats />     },
+        ],
       },
+
+      // ── Albums ────────────────────────────────────────────────────────
       {
         path: "/albums",
         element: <AlbumContainer />,
         children: [
-          { index: true, element: <Albums /> },
-          { path: "albumDetails/:title", element: <AlbumDetails /> },
+          { index: true,                    element: <Albums />      },
+          { path: "albumDetails/:title",    element: <AlbumDetails /> },
         ],
       },
     ],

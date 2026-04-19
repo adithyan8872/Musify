@@ -47,7 +47,7 @@ const Albumsidebar = () => {
     : "text-gray-600 hover:text-gray-900 hover:bg-gray-100";
 
   return (
-    <aside className={`w-56 shrink-0 flex flex-col border-r min-h-[calc(100vh-70px)] ${sidebarBg}`}>
+    <aside className={`w-56 shrink-0 flex flex-col border-r min-h-[calc(100vh-70px)] hidden md:flex ${sidebarBg}`}>
       {/* Main nav */}
       <nav className="p-3 pb-2">
         <ul className="flex flex-col gap-0.5">

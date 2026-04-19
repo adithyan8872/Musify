@@ -1,7 +1,8 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { _Auth } from "../Backend/Firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { _Auth, _DB } from "../Backend/Firebase";
 import { storage, addToRecentlyPlayed } from "../utils/storage";
 
 export const Mygarage = createContext();
@@ -9,6 +10,9 @@ export const Mygarage = createContext();
 export const AuthContext = ({ children }) => {
   // ── Auth ──────────────────────────────────────────────────────────────
   const [authuser, setAuthuser] = useState(null);
+  // userRole is loaded from Firestore and persisted in localStorage
+  // so admin access survives page refresh without waiting for Firestore
+  const [userRole, setUserRole] = useState(() => storage.get("musify_role", "user"));
 
   // ── Player state ──────────────────────────────────────────────────────
   const [songs, setSongs] = useState([]);           // current album/queue source
@@ -28,11 +32,29 @@ export const AuthContext = ({ children }) => {
   // ── UI state ──────────────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useState(() => storage.get("musify_dark", true));
   const [searchQuery, setSearchQuery] = useState("");
+  const [showRightPanel, setShowRightPanel] = useState(false);
 
   // ── Auth listener ─────────────────────────────────────────────────────
   useEffect(() => {
-    const unsub = onAuthStateChanged(_Auth, (user) => {
-      setAuthuser(user && user.emailVerified ? user : null);
+    const unsub = onAuthStateChanged(_Auth, async (user) => {
+      if (user && user.emailVerified) {
+        setAuthuser(user);
+        // Fetch role from Firestore and persist it so refresh works instantly
+        try {
+          const snap = await getDoc(doc(_DB, "user_Profile", user.uid));
+          const role = snap.exists() ? (snap.data().role || "user") : "user";
+          setUserRole(role);
+          storage.set("musify_role", role);
+        } catch {
+          // Firestore unavailable — fall back to cached role
+          const cached = storage.get("musify_role", "user");
+          setUserRole(cached);
+        }
+      } else {
+        setAuthuser(null);
+        setUserRole("user");
+        storage.set("musify_role", "user");
+      }
     });
     return () => unsub();
   }, []);
@@ -54,6 +76,8 @@ export const AuthContext = ({ children }) => {
     audioRef.current.load();
     audioRef.current.play().catch((e) => console.error("Playback error:", e));
     setIsPlaying(true);
+    // Auto-open right panel when a song starts
+    setShowRightPanel(true);
     // Track recently played
     const entry = { ...song, playedAt: Date.now() };
     addToRecentlyPlayed(entry);
@@ -181,16 +205,20 @@ export const AuthContext = ({ children }) => {
   async function logout() {
     await signOut(_Auth);
     setAuthuser(null);
+    setUserRole("user");
+    storage.set("musify_role", "user");
     audioRef.current.pause();
     toast.success("Logged out successfully");
     window.location.assign("/");
   }
 
+  const isAdmin = userRole === "admin";
+
   return (
     <Mygarage.Provider
       value={{
         // auth
-        authuser, logout,
+        authuser, logout, userRole, isAdmin,
         // player
         songs, setSongs,
         queue, setQueue, addToQueue, clearQueue,
@@ -208,6 +236,7 @@ export const AuthContext = ({ children }) => {
         // ui
         darkMode, setDarkMode,
         searchQuery, setSearchQuery,
+        showRightPanel, setShowRightPanel,
       }}
     >
       {children}

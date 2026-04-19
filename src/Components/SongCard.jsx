@@ -95,16 +95,18 @@ const SongCard = ({ song, index, songList = [], showAlbum = false }) => {
   }
 
   const rowBg = darkMode
-    ? `hover:bg-white/5 ${isActive ? "bg-white/10" : ""}`
-    : `hover:bg-gray-100 ${isActive ? "bg-green-50" : ""}`;
+    ? `hover:bg-white/6 ${isActive ? "bg-white/10 ring-1 ring-white/10" : ""}`
+    : `hover:bg-gray-100/80 ${isActive ? "bg-green-50 ring-1 ring-green-200" : ""}`;
 
   const textMain = darkMode ? "text-white" : "text-gray-900";
   const textSub = darkMode ? "text-gray-400" : "text-gray-500";
-  const menuBg = darkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200";
-  const menuItem = darkMode ? "hover:bg-gray-800 text-gray-200" : "hover:bg-gray-50 text-gray-700";
+  const menuBg = darkMode
+    ? "bg-gray-900/95 border-gray-700 backdrop-blur-xl"
+    : "bg-white border-gray-200 shadow-xl";
+  const menuItem = darkMode ? "hover:bg-white/8 text-gray-200" : "hover:bg-gray-50 text-gray-700";
 
   return (
-    <div className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${rowBg}`}>
+    <div className={`group flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 cursor-pointer ${rowBg}`}>
       {/* Track number / eq bars */}
       <div className="w-6 shrink-0 flex items-center justify-center" onClick={playSong}>
         {isActive && isPlaying ? (
@@ -119,13 +121,20 @@ const SongCard = ({ song, index, songList = [], showAlbum = false }) => {
         )}
       </div>
 
-      {/* Thumbnail */}
-      <img
-        src={song?.songThumbnail || song?.poster || "https://placehold.co/44x44/1f2937/9ca3af?text=♪"}
-        alt={song?.songTitle || song?.title}
-        className="w-10 h-10 rounded-lg object-cover shrink-0"
-        onClick={playSong}
-      />
+      {/* Thumbnail with hover play overlay */}
+      <div className="relative shrink-0 group/thumb" onClick={playSong}>
+        <img
+          src={song?.songThumbnail || song?.poster || "https://placehold.co/44x44/1f2937/9ca3af?text=♪"}
+          alt={song?.songTitle || song?.title}
+          className="w-10 h-10 rounded-lg object-cover transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg"
+        />
+        <div className="absolute inset-0 rounded-lg bg-black/50 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-all duration-150">
+          {isActive && isPlaying
+            ? <FaPause size={10} className="text-white" />
+            : <FaPlay size={10} className="text-white ml-0.5" />
+          }
+        </div>
+      </div>
 
       {/* Info */}
       <div className="flex-1 overflow-hidden min-w-0" onClick={playSong}>
